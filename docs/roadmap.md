@@ -4,24 +4,20 @@
 
 MCP3100 当前以 Termux 为主要部署环境。
 
-核心服务：
+核心服务：Node.js、MCP Streamable HTTP、mcp-std、PM2、3100 端口、Bearer Token 鉴权。
 
-- Node.js
-- MCP Streamable HTTP
-- mcp-std
-- PM2
-- 3100 端口
-- Bearer Token 鉴权
+## 已完成的基础能力
 
-默认 MCP 地址：`http://127.0.0.1:3100/mcp`
+- MCP 工具统一加载
+- container 命令通过 spawn 参数数组直传，避免 Termux 宿主 shell 二次解析
+- container 异步长任务：`async=true` + `job_status/job_output/job_cancel`
+- 轻量 typecheck 预检，不额外引入 TypeScript 编译器
 
 ## 后续可扩展方向
 
 ### 1. 支持通用 Linux
 
 目前安装器针对 Termux 设计。后续可扩展 Ubuntu、Debian、Arch Linux、Fedora 及其他兼容 Node.js 的 Linux。
-
-核心 MCP 服务应尽量保持不依赖 Termux。
 
 ### 2. 自动识别运行环境
 
@@ -33,8 +29,8 @@ MCP3100 当前以 Termux 为主要部署环境。
 
 ```text
 MCP3100
-├── core/                 # MCP 核心
-├── installer/            # 平台安装层
+├── core/
+├── installer/
 │   ├── termux/
 │   ├── debian/
 │   ├── arch/
@@ -44,44 +40,19 @@ MCP3100
 └── docs/
 ```
 
-核心 MCP 不应因为增加 Linux 平台而重复修改。
-
 ### 4. ChatGPT / Tunnel
 
-ChatGPT 和 Tunnel 当前属于可选功能，第一次部署不要求配置。
-
-后续可增加：
-
-- Tunnel 自动配置
-- ChatGPT 连接向导
-- 外部 MCP URL 配置
-- Authorization 配置
-- 连接状态检测
-- Tunnel 自动恢复
+ChatGPT 和 Tunnel 当前属于可选功能。后续可增加 Tunnel 自动配置、ChatGPT 连接向导、外部 MCP URL 配置、Authorization 配置、连接状态检测和自动恢复。
 
 ### 5. 配置与迁移
 
-未来可以支持：
-
-```text
-backup
-  ↓
-新 Linux / 新 Termux
-  ↓
-install
-  ↓
-restore
-  ↓
-MCP3100 恢复
-```
-
-源码、配置、数据和密钥继续保持分离。
+未来可以支持 backup → install → restore，源码、配置、数据和密钥继续保持分离。
 
 ## 设计原则
 
 1. 不因为增加平台破坏现有 Termux 部署。
 2. MCP 核心尽量保持跨 Linux。
 3. 平台相关代码放在安装层，不进入 MCP 核心。
-4. ChatGPT/Tunnel 保持可选，不成为首次安装的强制依赖。
+4. ChatGPT/Tunnel 保持可选。
 5. 不把 Token、API Key 等敏感信息提交到 GitHub。
 6. 新版本升级应尽量保持现有配置和数据。

@@ -11,7 +11,8 @@ Termux 原生、可重建的标准 MCP Streamable HTTP 服务。
 - PM2 管理
 - `npm ci` 锁定依赖
 - 第一次安装不强制填写 ChatGPT/Tunnel 数据
-- 后续 ChatGPT/Tunnel 接入说明单独维护
+- `container` 支持异步长任务，避免长命令占用 MCP 请求超时
+- 内置轻量 `typecheck` 预检
 
 ## 一键安装
 
@@ -29,7 +30,14 @@ Termux 原生、可重建的标准 MCP Streamable HTTP 服务。
 ./scripts/status.sh
 ./scripts/update.sh
 ./scripts/health-check.sh
+npm run typecheck
 ```
+
+## container 长任务
+
+短命令继续使用同步 `exec`。预计超过请求超时的任务使用 `async=true`，拿到 `job_id` 后通过 `job_status`、`job_output`、`job_cancel` 管理。
+
+完整说明见 [`docs/container-async.md`](docs/container-async.md)。
 
 ## 本地 MCP 地址
 
