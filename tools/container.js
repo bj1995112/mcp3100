@@ -11,6 +11,14 @@
  * 路径映射规则（以 ubuntu 为例）:
  *   容器视角  /root/pi-web
  *   Termux 视角 $PREFIX/var/lib/proot-distro/containers/ubuntu/rootfs/root/pi-web
+ *
+ * ⚠️ 命令传递铁律（2026-08-16 修复）:
+ *   exec 必须用 spawn("proot-distro", [argv...]) 参数数组直传，
+ *   禁止把 JSON.stringify(cmd) 拼进 "bash -c" 字符串！
+ *   旧实现 `bash -lc ${JSON.stringify(cmd)}` 会把 \n 变成字面反斜杠+n、
+ *   把 $ 和反引号留给宿主 Termux 展开、把引号弄乱 →
+ *   典型症状: "set -e" 报 set: invalid option（多行命令被压一行）。
+ *   参数数组方式下 cmd 是单个 argv，换行/$/引号原样到达容器内 bash。
  */
 const { spawn } = require("child_process");
 const { execSync } = require("child_process");
@@ -48,11 +56,11 @@ function killTree(rootPid) {
   }
 }
 
-/** 在容器内执行命令（spawn + 超时进程树清理） */
+/** 在容器内执行命令（spawn 参数数组直传 + 超时进程树清理） */
 function execInContainer(distro, cmd, timeoutMs) {
   return new Promise((resolve, reject) => {
-    const full = `proot-distro login ${distro} -- bash -lc ${JSON.stringify(cmd)}`;
-    const child = spawn("bash", ["-c", full], { env: process.env });
+    // 关键: cmd 作为单个 argv 传给容器内 bash -lc，不经过 Termux 宿主 shell 解析
+    const child = spawn("proot-distro", ["login", distro, "--", "bash", "-lc", cmd], { env: process.env });
     let out = "";
     let err = "";
 
