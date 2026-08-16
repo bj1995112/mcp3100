@@ -38,3 +38,9 @@ Termux 原生、可重建的标准 MCP Streamable HTTP 服务。
 ## ChatGPT
 
 首次安装不需要配置。后续按 `docs/chatgpt-connection.md` 填写连接所需数据。
+
+## 后续扩展
+
+当前主要面向 Termux，后续可扩展 Ubuntu / Debian / Arch / Fedora 等 Linux，并增加自动识别运行环境、跨 Linux 一键安装、ChatGPT / Tunnel 自动配置以及配置备份与迁移能力。
+
+核心 MCP 服务尽量保持跨 Linux，平台差异放在安装层。完整规划见 [`docs/roadmap.md`](docs/roadmap.md)。
