@@ -42,7 +42,7 @@ function jobPaths(jobId) {
 }
 
 function shellQuote(value) {
-  return `'${String(value).replace(/'/g, `'"'\u0027'"'`)}'`;
+  return `'${String(value).replace(/'/g, `'"'"'`)}'`;
 }
 
 function createJob(distro, cmd) {
@@ -51,18 +51,12 @@ function createJob(distro, cmd) {
   const p = jobPaths(jobId);
   fs.mkdirSync(p.dir, { recursive: true, mode: 0o700 });
   fs.writeFileSync(p.meta, JSON.stringify({ job_id: jobId, distro, cmd, created_at: new Date().toISOString() }, null, 2));
-
-  const wrapper = `
-set +e
+  const wrapper = `set +e
 proot-distro login ${distro} -- bash -lc ${shellQuote(cmd)} > ${shellQuote(p.log)} 2>&1
 code=$?
 printf '%s\\n' "$code" > ${shellQuote(p.result)}
 `;
-  const child = spawn("bash", ["-lc", wrapper], {
-    env: process.env,
-    detached: true,
-    stdio: "ignore"
-  });
+  const child = spawn("bash", ["-lc", wrapper], { env: process.env, detached: true, stdio: "ignore" });
   child.unref();
   fs.writeFileSync(p.pid, String(child.pid));
   return { job_id: jobId, distro, status: "running", log: p.log };
@@ -90,9 +84,10 @@ function cancelJob(jobId) {
   if (fs.existsSync(p.result)) return readJob(jobId);
   const pid = Number(fs.readFileSync(p.pid, "utf8"));
   if (Number.isInteger(pid) && pid > 1) {
-    try { process.kill(-pid, "SIGTERM"); } catch { try { process.kill(pid, "SIGTERM"); } catch {} }
+    try { process.kill(-pid, "SIGTERM"); } catch {}
+    try { process.kill(pid, "SIGTERM"); } catch {}
   }
-  fs.writeFileSync(p.result, "143\n");
+  fs.writeFileSync(p.result, "143\\n");
   return readJob(jobId);
 }
 
@@ -169,7 +164,10 @@ module.exports = {
     const action = args.action || "exec";
     const distro = args.distro || DEFAULT_DISTRO;
     if (!validDistro(distro)) throw new Error(`非法 distro: ${distro}`);
-    if (action === "list") return run(`ls ${process.env.PREFIX}/var/lib/proot-distro/containers/ 2>/dev/null || echo "(无容器)"`, { timeout: 10000 });
+
+    if (action === "list") {
+      return run(`ls ${process.env.PREFIX}/var/lib/proot-distro/containers/ 2>/dev/null || echo "(无容器)"`, { timeout: 10000 });
+    }
     if (action === "status") {
       const root = rootfsPath(distro);
       if (!fs.existsSync(root)) return `容器 ${distro} 未安装（rootfs 不存在）`;
