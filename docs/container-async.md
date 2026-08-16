@@ -1,55 +1,20 @@
-# container 异步长任务
+# container 异步长任务模式
 
-`container` 工具现在支持 `async=true`。这是为了解决 proot / Termux 中长任务占用 MCP 请求、触发 HTTP 或工具层超时的问题。
-
-## 启动长任务
-
-调用 `container`：
+`container` 工具的 `exec` 默认保持同步模式；需要运行构建、升级、扫描等长任务时使用 `async: true`。
 
 ```json
 {
   "action": "exec",
   "distro": "ubuntu",
-  "cmd": "npm run build",
+  "cmd": "your long command",
   "async": true
 }
 ```
 
-工具会立即返回 `job_id`，后台任务继续运行，输出写入任务日志。
+立即返回 `job_id`。随后：
 
-## 查询状态
+- `job_status`：查询运行状态和退出码
+- `job_output`：读取完整日志
+- `job_cancel`：取消任务
 
-```json
-{
-  "action": "job_status",
-  "job_id": "<job_id>"
-}
-```
-
-状态包括 `running`、`completed`、`failed`，并提供 `exit_code`。
-
-## 获取输出
-
-```json
-{
-  "action": "job_output",
-  "job_id": "<job_id>"
-}
-```
-
-## 取消任务
-
-```json
-{
-  "action": "job_cancel",
-  "job_id": "<job_id>"
-}
-```
-
-取消会尝试终止整个后台进程组，而不是只杀掉外层 wrapper。
-
-## 设计原则
-
-- 普通短命令继续使用 `exec`，默认超时 90 秒。
-- 长任务不要依赖 `nohup + 手工日志` 绕过超时，直接使用 `async=true`。
-- `job_id` 是任务唯一句柄；后续可以在此基础上扩展任务清理、实时 tail、重试和持久化。
+任务日志和状态保存在 Termux 临时目录，不进入 MCP 仓库。同步 `exec` 仍保留默认超时；这套机制从根本上避免 MCP 请求被长任务阻塞。

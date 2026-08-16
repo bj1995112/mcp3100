@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Standard MCP Streamable HTTP server for Termux (port 3100, Bearer auth), reusing src/tools plugins",
+  "description": "Standard MCP Streamable HTTP server for Termux (port 3100, Bearer auth), reusing tools plugins",
+  "scripts": {
+    "typecheck": "bash scripts/typecheck.sh"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
     "express": "^5.2.1",
     "zod": "^4.0.0"
-  },
-  "scripts": {
-    "typecheck": "bash scripts/typecheck.sh"
   }
 }
